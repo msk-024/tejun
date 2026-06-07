@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI tooling (personal notes / config — repo should be completable without AI)
+CLAUDE.md
+NEXT.md
