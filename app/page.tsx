@@ -1,26 +1,96 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import ProcedureCard from '@/app/procedures/_components/ProcedureCard'
+import type { Category } from '@/lib/types'
 
-export default async function Home() {
+type Props = {
+  searchParams: { category?: string; q?: string }
+}
+
+export default async function Home({ searchParams }: Props) {
   const supabase = createClient()
-  const { data: categories, error } = await supabase
+  const categoryId = searchParams.category ?? ''
+  const keyword = searchParams.q?.trim() ?? ''
+
+  const { data: categories } = await supabase
     .from('categories')
     .select('*')
     .eq('is_deleted', false)
+    .order('created_at')
+
+  let query = supabase
+    .from('procedures')
+    .select('*')
+    .eq('is_deleted', false)
+    .order('updated_at', { ascending: false })
+
+  if (categoryId) query = query.eq('category_id', categoryId)
+  if (keyword) query = query.ilike('title', `%${keyword}%`)
+
+  const { data: procedures } = await query
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const categoryMap = new Map<string, Category>(
+    (categories ?? []).map((c) => [c.id, c]),
+  )
 
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-2xl font-bold mb-4">Tejun - 手順書管理</h1>
+    <main className="max-w-3xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold">手順書一覧</h1>
+        {user && (
+          <Link
+            href="/procedures/new"
+            className="bg-[#2d6a4f] text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-[#255c43] transition-colors"
+          >
+            + 新規作成
+          </Link>
+        )}
+      </div>
 
-      {error ? (
-        <div className="text-red-600 bg-red-50 p-4 rounded">
-          <p className="font-semibold">Supabase 接続エラー</p>
-          <p className="text-sm mt-1">{error.message}</p>
-        </div>
+      <form className="flex flex-col sm:flex-row gap-3 mb-6">
+        <select
+          name="category"
+          defaultValue={categoryId}
+          className="border border-border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+        >
+          <option value="">すべてのカテゴリ</option>
+          {(categories ?? []).map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="text"
+          name="q"
+          placeholder="キーワードで検索"
+          defaultValue={keyword}
+          className="flex-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+        />
+
+        <button
+          type="submit"
+          className="bg-[#2d6a4f] text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-[#255c43] transition-colors"
+        >
+          検索
+        </button>
+      </form>
+
+      {!procedures || procedures.length === 0 ? (
+        <p className="text-muted-foreground text-sm">該当する手順書がありません。</p>
       ) : (
-        <div className="text-green-700 bg-green-50 p-4 rounded">
-          <p className="font-semibold">✓ Supabase 接続成功</p>
-          <p className="text-sm mt-1">カテゴリ数: {categories?.length ?? 0} 件</p>
-        </div>
+        <ul className="flex flex-col gap-3">
+          {procedures.map((procedure) => (
+            <li key={procedure.id}>
+              <ProcedureCard
+                procedure={procedure}
+                category={procedure.category_id ? categoryMap.get(procedure.category_id) ?? null : null}
+              />
+            </li>
+          ))}
+        </ul>
       )}
     </main>
   )
