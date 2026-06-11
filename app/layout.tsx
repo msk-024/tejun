@@ -11,7 +11,7 @@ const notoSansJP = Noto_Sans_JP({
 })
 
 export const metadata: Metadata = {
-  title: 'Tejun（てじゅん）',
+  title: 'TEJUN',
   description: '看護師向け手順書・マニュアル管理アプリ',
 }
 

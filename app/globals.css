@@ -8,6 +8,33 @@
   }
 }
 
+/* TipTap エディタ内コンテンツのスタイル */
+.ProseMirror {
+  @apply min-h-[16rem] px-3 py-2 focus:outline-none leading-relaxed;
+}
+.ProseMirror h1 { @apply text-2xl font-bold mt-4 mb-2; }
+.ProseMirror h2 { @apply text-xl font-bold mt-4 mb-2; }
+.ProseMirror h3 { @apply text-lg font-semibold mt-3 mb-1; }
+.ProseMirror p { @apply mb-2; }
+.ProseMirror ul { @apply list-disc pl-5 mb-2; }
+.ProseMirror ol { @apply list-decimal pl-5 mb-2; }
+.ProseMirror li { @apply mb-0.5; }
+.ProseMirror blockquote {
+  @apply border-l-4 border-[#2d6a4f] pl-3 my-2 text-muted-foreground italic;
+}
+.ProseMirror code {
+  @apply bg-gray-100 rounded px-1 text-sm font-mono;
+}
+.ProseMirror pre {
+  @apply bg-gray-100 rounded-md p-3 my-2 overflow-x-auto;
+}
+.ProseMirror pre code { @apply bg-transparent p-0; }
+.ProseMirror hr { @apply border-border my-4; }
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground pointer-events-none float-left h-0;
+  content: attr(data-placeholder);
+}
+
 @layer base {
   :root {
     --background: oklch(1 0 0);
