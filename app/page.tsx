@@ -25,7 +25,10 @@ export default async function Home({ searchParams }: Props) {
     .order('updated_at', { ascending: false })
 
   if (categoryId) query = query.eq('category_id', categoryId)
-  if (keyword) query = query.ilike('title', `%${keyword}%`)
+  if (keyword) {
+    const q = keyword.replace(/%/g, '\\%').replace(/_/g, '\\_')
+    query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+  }
 
   const { data: procedures } = await query
   const { data: { user } } = await supabase.auth.getUser()
@@ -65,7 +68,7 @@ export default async function Home({ searchParams }: Props) {
         <input
           type="text"
           name="q"
-          placeholder="キーワードで検索"
+          placeholder="タイトル・本文で検索"
           defaultValue={keyword}
           className="flex-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
         />

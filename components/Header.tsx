@@ -9,7 +9,7 @@ export default async function Header() {
     <header className="sticky top-0 z-10 bg-white border-b border-border">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <a href="/" className="text-base font-bold text-[#2d6a4f]">
-          てじゅん
+          TEJUN
         </a>
 
         <div className="flex items-center gap-3">
