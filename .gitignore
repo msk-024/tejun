@@ -35,6 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# AI tooling (personal notes / config — repo should be completable without AI)
-CLAUDE.md
-NEXT.md
+# AI tooling / personal notes — repo should be completable without AI
+*.md
+!README.md

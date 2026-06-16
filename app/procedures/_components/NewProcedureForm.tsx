@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createProcedure } from '@/app/procedures/actions'
 import MarkdownEditor from './MarkdownEditor'
 import { PROCEDURE_TEMPLATES } from './templates'
@@ -13,10 +13,42 @@ type Props = {
 export default function NewProcedureForm({ categories }: Props) {
   const [editorKey, setEditorKey] = useState(0)
   const [defaultContent, setDefaultContent] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleTemplateSelect(content: string) {
     setDefaultContent(content)
     setEditorKey((k) => k + 1)
+  }
+
+  async function handleWordImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsImporting(true)
+    setImportError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/import/word', { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setImportError(data.error ?? 'インポートに失敗しました')
+        return
+      }
+
+      setDefaultContent(data.html)
+      setEditorKey((k) => k + 1)
+    } catch {
+      setImportError('ファイルの読み込みに失敗しました')
+    } finally {
+      setIsImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   return (
@@ -34,6 +66,30 @@ export default function NewProcedureForm({ categories }: Props) {
               {template.name}
             </button>
           ))}
+        </div>
+
+        <div className="border-t border-border pt-2 mt-1">
+          <p className="text-xs font-medium text-muted-foreground mb-2">既存ファイルから取り込む（任意）</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".docx,.xlsx,.xls"
+              onChange={handleWordImport}
+              className="hidden"
+              id="word-import"
+            />
+            <label
+              htmlFor="word-import"
+              className={`text-xs px-3 py-1.5 rounded-md border border-border bg-white cursor-pointer hover:bg-gray-50 transition-colors ${isImporting ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+              {isImporting ? '読み込み中…' : 'ファイルを選択'}
+            </label>
+            <span className="text-xs text-muted-foreground">Word・Excel ファイルに対応</span>
+          </div>
+          {importError && (
+            <p className="text-xs text-red-500 mt-1">{importError}</p>
+          )}
         </div>
       </div>
 
