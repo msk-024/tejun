@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"require\\('sharp'\\); console.log\\('sharp resolvable'\\)\")",
+      "Bash(node -e \"require\\('next/dist/compiled/sharp'\\); console.log\\('next-sharp OK'\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
