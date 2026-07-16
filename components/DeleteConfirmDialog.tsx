@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Dialog,
@@ -8,15 +8,19 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 
 type Props = {
-  children: React.ReactElement
-  title: string
-  description: string
-  formAction: (formData: FormData) => Promise<void>
-  hiddenFields: Record<string, string>
-}
+  /** トリガー要素。open を指定する制御モードでは省略する */
+  children?: React.ReactElement;
+  title: string;
+  description: string;
+  formAction: (formData: FormData) => Promise<void>;
+  hiddenFields: Record<string, string>;
+  /** 開閉を外部から制御する。省略時は children をトリガーとする非制御モード */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
 
 export default function DeleteConfirmDialog({
   children,
@@ -24,10 +28,12 @@ export default function DeleteConfirmDialog({
   description,
   formAction,
   hiddenFields,
+  open,
+  onOpenChange,
 }: Props) {
   return (
-    <Dialog>
-      <DialogTrigger render={children} />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger render={children} />}
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -61,5 +67,5 @@ export default function DeleteConfirmDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
