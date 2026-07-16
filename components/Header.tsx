@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/actions/auth";
 
@@ -18,12 +17,6 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Link
-                href="/categories"
-                className="text-sm px-3 py-1.5 rounded-md border border-border hover:bg-gray-50 transition-colors"
-              >
-                カテゴリ管理
-              </Link>
               <span className="text-sm text-muted-foreground hidden sm:block">
                 {user.email}
               </span>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { deleteProcedure, duplicateProcedure } from "@/app/procedures/actions";
 
 type Props = {
@@ -12,7 +12,8 @@ type Props = {
 
 export default function ActionMenu({ procedureId, procedureTitle }: Props) {
   const [open, setOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,16 +46,16 @@ export default function ActionMenu({ procedureId, procedureTitle }: Props) {
             編集
           </Link>
 
-          {/* onClick でメニューを閉じるとフォームが送信前にアンマウントされるため閉じない */}
-          <form action={duplicateProcedure}>
-            <input type="hidden" name="id" value={procedureId} />
-            <button
-              type="submit"
-              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
-            >
-              複製
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              setDuplicateOpen(true);
+            }}
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+          >
+            複製
+          </button>
 
           <div className="border-t border-border my-1" />
 
@@ -62,7 +63,7 @@ export default function ActionMenu({ procedureId, procedureTitle }: Props) {
             type="button"
             onClick={() => {
               setOpen(false);
-              setConfirmOpen(true);
+              setDeleteOpen(true);
             }}
             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
           >
@@ -72,11 +73,23 @@ export default function ActionMenu({ procedureId, procedureTitle }: Props) {
       )}
 
       {/* メニューの開閉に巻き込まれてアンマウントされないよう条件ブロックの外に置く */}
-      <DeleteConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
+      <ConfirmDialog
+        open={duplicateOpen}
+        onOpenChange={setDuplicateOpen}
+        title="手順書を複製しますか？"
+        description={`「${procedureTitle}」のコピーを作成し、編集画面を開きます。`}
+        confirmLabel="複製する"
+        tone="primary"
+        formAction={duplicateProcedure}
+        hiddenFields={{ id: procedureId }}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
         title="手順書を削除しますか？"
         description={`「${procedureTitle}」を削除します。この操作は取り消せません。`}
+        confirmLabel="削除する"
         formAction={deleteProcedure}
         hiddenFields={{ id: procedureId }}
       />

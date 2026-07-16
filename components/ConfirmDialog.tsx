@@ -5,9 +5,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 type Props = {
@@ -15,6 +15,10 @@ type Props = {
   children?: React.ReactElement;
   title: string;
   description: string;
+  /** 実行ボタンのラベル（例: 削除する / 複製する） */
+  confirmLabel: string;
+  /** danger は赤系（取り消せない操作）、primary はアクセントカラー */
+  tone?: "danger" | "primary";
   formAction: (formData: FormData) => Promise<void>;
   hiddenFields: Record<string, string>;
   /** 開閉を外部から制御する。省略時は children をトリガーとする非制御モード */
@@ -22,10 +26,17 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export default function DeleteConfirmDialog({
+const TONE_CLASS = {
+  danger: "bg-red-600 hover:bg-red-700",
+  primary: "bg-[#2d6a4f] hover:bg-[#255c43]",
+} as const;
+
+export default function ConfirmDialog({
   children,
   title,
   description,
+  confirmLabel,
+  tone = "danger",
   formAction,
   hiddenFields,
   open,
@@ -59,9 +70,9 @@ export default function DeleteConfirmDialog({
             ))}
             <button
               type="submit"
-              className="rounded-md bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 transition-colors"
+              className={`rounded-md text-white px-4 py-2 text-sm font-medium transition-colors ${TONE_CLASS[tone]}`}
             >
-              削除する
+              {confirmLabel}
             </button>
           </form>
         </DialogFooter>
