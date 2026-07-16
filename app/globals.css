@@ -83,16 +83,11 @@
 /* 印刷スタイル */
 @media print {
   header,
-  aside,
   .no-print {
     display: none !important;
   }
   body {
     background: white !important;
-  }
-  main {
-    width: 100% !important;
-    flex: 1 1 auto !important;
   }
 }
 

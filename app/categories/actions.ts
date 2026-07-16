@@ -1,20 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/auth";
 import {
   SESSION_EXPIRED_MESSAGE,
   type ActionResult,
 } from "@/lib/action-result";
-
-/** redirect しない認証取得。NEXT_REDIRECT を投げないので呼び出し側で try/catch できる */
-async function getAuth() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
-}
 
 export async function createCategory(
   formData: FormData,
@@ -55,7 +46,10 @@ export async function createCategory(
     action: "created",
   });
 
-  revalidatePath("/categories");
+  // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
+  // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
+  // カテゴリの変更は頻度が低く、取りこぼしの方が痛い。
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -104,7 +98,10 @@ export async function updateCategory(
     action: "updated",
   });
 
-  revalidatePath("/categories");
+  // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
+  // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
+  // カテゴリの変更は頻度が低く、取りこぼしの方が痛い。
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -160,6 +157,9 @@ export async function deleteCategory(
     action: "deleted",
   });
 
-  revalidatePath("/categories");
+  // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
+  // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
+  // カテゴリの変更は頻度が低く、取りこぼしの方が痛い。
+  revalidatePath("/", "layout");
   return { ok: true };
 }

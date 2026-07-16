@@ -7,6 +7,33 @@ type Props = {
   searchParams: { category?: string; q?: string };
 };
 
+/**
+ * 検索キーワードを PostgREST の or() に安全に埋め込める形にする。
+ *
+ * or() の中身はカンマ区切りの条件リストとして解釈されるため、値を素で連結すると
+ * キーワードに含まれるカンマで条件を追加注入できてしまう。値をダブルクォートで
+ * 囲むとカンマが区切りとして扱われなくなる。
+ *
+ * エスケープは2層あり、順序が重要:
+ *   1. ILIKE のワイルドカード（% _）を打ち消す。バックスラッシュ自身が先。
+ *   2. PostgREST のダブルクォート文字列として \ と " を退避する。
+ *
+ * 既知の制限: PostgREST は ilike の値に含まれる * を % に変換する仕様のため、
+ * * だけはワイルドカードとして働く（クォートしても抑止できない）。条件の注入は
+ * できないのでセキュリティ上の問題はない。厳密に literal 検索したい場合は
+ * Postgres 関数（RPC）に逃がす必要がある。
+ */
+function toSearchPattern(keyword: string): string {
+  const ilikePattern =
+    "%" +
+    keyword.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_") +
+    "%";
+
+  const quoted = ilikePattern.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+  return `"${quoted}"`;
+}
+
 export default async function Home({ searchParams }: Props) {
   const supabase = createClient();
   const categoryId = searchParams.category ?? "";
@@ -26,8 +53,8 @@ export default async function Home({ searchParams }: Props) {
 
   if (categoryId) query = query.eq("category_id", categoryId);
   if (keyword) {
-    const q = keyword.replace(/%/g, "\\%").replace(/_/g, "\\_");
-    query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
+    const pattern = toSearchPattern(keyword);
+    query = query.or(`title.ilike.${pattern},content.ilike.${pattern}`);
   }
 
   const { data: procedures } = await query;

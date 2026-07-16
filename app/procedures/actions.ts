@@ -2,20 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/auth";
 import {
   SESSION_EXPIRED_MESSAGE,
   type ActionResult,
 } from "@/lib/action-result";
-
-/** redirect しない認証取得。結果を返す系のアクションから使う */
-async function getAuth() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
-}
 
 /** 未ログインなら /login へ飛ばす。throw 系のアクションから使う */
 async function requireAuth() {
@@ -104,6 +95,7 @@ export async function deleteProcedure(
 
   revalidatePath("/");
   revalidatePath(`/procedures/${procedure.id}`);
+  revalidatePath(`/procedures/${procedure.id}/history`);
   return { ok: true, redirectTo: "/" };
 }
 
@@ -149,7 +141,10 @@ export async function updateProcedure(formData: FormData) {
     action: "updated",
   });
 
+  // 一覧はタイトルと更新日時を、履歴ページは今 INSERT した行を表示するため両方古くなる
+  revalidatePath("/");
   revalidatePath(`/procedures/${id}`);
+  revalidatePath(`/procedures/${id}/history`);
   redirect(`/procedures/${id}`);
 }
 
