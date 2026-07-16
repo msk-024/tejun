@@ -1,9 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { logout } from '@/app/actions/auth'
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { logout } from "@/app/actions/auth";
 
 export default async function Header() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-border">
@@ -15,6 +18,12 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              <Link
+                href="/categories"
+                className="text-sm px-3 py-1.5 rounded-md border border-border hover:bg-gray-50 transition-colors"
+              >
+                カテゴリ管理
+              </Link>
               <span className="text-sm text-muted-foreground hidden sm:block">
                 {user.email}
               </span>
@@ -38,5 +47,5 @@ export default async function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }
