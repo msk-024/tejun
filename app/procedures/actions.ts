@@ -45,14 +45,7 @@ export async function createProcedure(formData: FormData) {
   if (error || !procedure)
     throw new Error(error?.message ?? "手順書の作成に失敗しました");
 
-  await supabase.from("procedure_histories").insert({
-    procedure_id: procedure.id,
-    title: procedure.title,
-    content: procedure.content,
-    category_id: procedure.category_id,
-    changed_by: userId,
-    action: "created",
-  });
+  // 履歴は procedures のトリガーが自動記録する（PLAN.md / migrations 参照）
 
   revalidatePath("/");
   redirect(`/procedures/${procedure.id}`);
@@ -84,14 +77,7 @@ export async function deleteProcedure(
     return { ok: false, message: "手順書の削除に失敗しました" };
   }
 
-  await supabase.from("procedure_histories").insert({
-    procedure_id: procedure.id,
-    title: procedure.title,
-    content: procedure.content,
-    category_id: procedure.category_id,
-    changed_by: user.id,
-    action: "deleted",
-  });
+  // 履歴は procedures のトリガーが自動記録する
 
   revalidatePath("/");
   revalidatePath(`/procedures/${procedure.id}`);
@@ -132,16 +118,9 @@ export async function updateProcedure(formData: FormData) {
   if (error || !procedure)
     throw new Error(error?.message ?? "手順書の更新に失敗しました");
 
-  await supabase.from("procedure_histories").insert({
-    procedure_id: procedure.id,
-    title: procedure.title,
-    content: procedure.content,
-    category_id: procedure.category_id,
-    changed_by: userId,
-    action: "updated",
-  });
+  // 履歴は procedures のトリガーが自動記録する
 
-  // 一覧はタイトルと更新日時を、履歴ページは今 INSERT した行を表示するため両方古くなる
+  // 一覧はタイトルと更新日時を、履歴ページは今記録された行を表示するため両方古くなる
   revalidatePath("/");
   revalidatePath(`/procedures/${id}`);
   revalidatePath(`/procedures/${id}/history`);
@@ -185,14 +164,7 @@ export async function duplicateProcedure(
     return { ok: false, message: "複製に失敗しました" };
   }
 
-  await supabase.from("procedure_histories").insert({
-    procedure_id: duplicate.id,
-    title: duplicate.title,
-    content: duplicate.content,
-    category_id: duplicate.category_id,
-    changed_by: user.id,
-    action: "created",
-  });
+  // 履歴は procedures のトリガーが自動記録する
 
   revalidatePath("/");
   return { ok: true, redirectTo: `/procedures/${duplicate.id}/edit` };

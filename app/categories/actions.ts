@@ -38,13 +38,7 @@ export async function createCategory(
     return { ok: false, message: "カテゴリの作成に失敗しました" };
   }
 
-  await supabase.from("category_histories").insert({
-    category_id: category.id,
-    name: category.name,
-    description: category.description,
-    changed_by: user.id,
-    action: "created",
-  });
+  // 履歴は categories のトリガーが自動記録する
 
   // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
   // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
@@ -90,13 +84,7 @@ export async function updateCategory(
     return { ok: false, message: "カテゴリの更新に失敗しました" };
   }
 
-  await supabase.from("category_histories").insert({
-    category_id: category.id,
-    name: category.name,
-    description: category.description,
-    changed_by: user.id,
-    action: "updated",
-  });
+  // 履歴は categories のトリガーが自動記録する
 
   // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
   // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
@@ -149,13 +137,7 @@ export async function deleteCategory(
     return { ok: false, message: "カテゴリの削除に失敗しました" };
   }
 
-  await supabase.from("category_histories").insert({
-    category_id: category.id,
-    name: category.name,
-    description: category.description,
-    changed_by: user.id,
-    action: "deleted",
-  });
+  // 履歴は categories のトリガーが自動記録する
 
   // カテゴリ名は一覧のフィルタ・カード・手順書詳細・新規作成/編集のセレクトと
   // 5画面に散っているため、個別列挙より layout 単位でまとめて再検証する。
