@@ -12,13 +12,27 @@
 .ProseMirror {
   @apply min-h-[16rem] px-3 py-2 focus:outline-none leading-relaxed;
 }
-.ProseMirror h1 { @apply text-2xl font-bold mt-4 mb-2; }
-.ProseMirror h2 { @apply text-xl font-bold mt-4 mb-2; }
-.ProseMirror h3 { @apply text-lg font-semibold mt-3 mb-1; }
-.ProseMirror p { @apply mb-2; }
-.ProseMirror ul { @apply list-disc pl-5 mb-2; }
-.ProseMirror ol { @apply list-decimal pl-5 mb-2; }
-.ProseMirror li { @apply mb-0.5; }
+.ProseMirror h1 {
+  @apply text-2xl font-bold mt-4 mb-2;
+}
+.ProseMirror h2 {
+  @apply text-xl font-bold mt-4 mb-2;
+}
+.ProseMirror h3 {
+  @apply text-lg font-semibold mt-3 mb-1;
+}
+.ProseMirror p {
+  @apply mb-2;
+}
+.ProseMirror ul {
+  @apply list-disc pl-5 mb-2;
+}
+.ProseMirror ol {
+  @apply list-decimal pl-5 mb-2;
+}
+.ProseMirror li {
+  @apply mb-0.5;
+}
 .ProseMirror blockquote {
   @apply border-l-4 border-[#2d6a4f] pl-3 my-2 text-muted-foreground italic;
 }
@@ -28,8 +42,39 @@
 .ProseMirror pre {
   @apply bg-gray-100 rounded-md p-3 my-2 overflow-x-auto;
 }
-.ProseMirror pre code { @apply bg-transparent p-0; }
-.ProseMirror hr { @apply border-border my-4; }
+.ProseMirror pre code {
+  @apply bg-transparent p-0;
+}
+.ProseMirror hr {
+  @apply border-border my-4;
+}
+
+/* エディタ内の表。罫線を明示しないとセル境界が見えず編集できない */
+.ProseMirror table {
+  @apply w-full my-3 table-fixed border-collapse overflow-hidden;
+}
+.ProseMirror th {
+  @apply border border-border bg-gray-50 px-3 py-2 text-left font-semibold align-top relative;
+}
+.ProseMirror td {
+  @apply border border-border px-3 py-2 align-top relative;
+}
+.ProseMirror th > *,
+.ProseMirror td > * {
+  @apply mb-0;
+}
+/* 選択中セルのハイライト */
+.ProseMirror .selectedCell::after {
+  @apply absolute inset-0 bg-[#2d6a4f]/10 pointer-events-none z-10;
+  content: "";
+}
+/* 列幅ドラッグのつまみ */
+.ProseMirror .column-resize-handle {
+  @apply absolute top-0 -right-0.5 bottom-0 w-1 bg-[#2d6a4f] pointer-events-none;
+}
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
 .ProseMirror p.is-editor-empty:first-child::before {
   @apply text-muted-foreground pointer-events-none float-left h-0;
   content: attr(data-placeholder);
@@ -37,9 +82,18 @@
 
 /* 印刷スタイル */
 @media print {
-  header, aside, .no-print { display: none !important; }
-  body { background: white !important; }
-  main { width: 100% !important; flex: 1 1 auto !important; }
+  header,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  main {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+  }
 }
 
 @layer base {

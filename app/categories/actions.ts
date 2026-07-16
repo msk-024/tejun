@@ -1,94 +1,123 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  SESSION_EXPIRED_MESSAGE,
+  type ActionResult,
+} from "@/lib/action-result";
 
-async function requireAuth() {
+/** redirect しない認証取得。NEXT_REDIRECT を投げないので呼び出し側で try/catch できる */
+async function getAuth() {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  return { supabase, userId: user.id };
+  return { supabase, user };
 }
 
-export async function createCategory(formData: FormData) {
+export async function createCategory(
+  formData: FormData,
+): Promise<ActionResult> {
   const name = formData.get("name");
   const description = formData.get("description") ?? "";
 
-  if (typeof name !== "string" || name.trim() === "") return;
-  if (typeof description !== "string") return;
+  if (typeof name !== "string" || name.trim() === "") {
+    return { ok: false, message: "カテゴリ名を入力してください" };
+  }
+  if (typeof description !== "string") {
+    return { ok: false, message: "説明の形式が不正です" };
+  }
 
-  const { supabase, userId } = await requireAuth();
+  const { supabase, user } = await getAuth();
+  if (!user) return { ok: false, message: SESSION_EXPIRED_MESSAGE };
 
   const { data: category, error } = await supabase
     .from("categories")
     .insert({
       name: name.trim(),
       description,
-      created_by: userId,
-      updated_by: userId,
+      created_by: user.id,
+      updated_by: user.id,
     })
     .select()
     .single();
 
-  if (error || !category)
-    throw new Error(error?.message ?? "カテゴリの作成に失敗しました");
+  if (error || !category) {
+    return { ok: false, message: "カテゴリの作成に失敗しました" };
+  }
 
   await supabase.from("category_histories").insert({
     category_id: category.id,
     name: category.name,
     description: category.description,
-    changed_by: userId,
+    changed_by: user.id,
     action: "created",
   });
 
   revalidatePath("/categories");
+  return { ok: true };
 }
 
-export async function updateCategory(formData: FormData) {
+export async function updateCategory(
+  formData: FormData,
+): Promise<ActionResult> {
   const id = formData.get("id");
   const name = formData.get("name");
   const description = formData.get("description") ?? "";
 
-  if (typeof id !== "string" || typeof name !== "string" || name.trim() === "")
-    return;
-  if (typeof description !== "string") return;
+  if (typeof id !== "string") {
+    return { ok: false, message: "不正なリクエストです" };
+  }
+  if (typeof name !== "string" || name.trim() === "") {
+    return { ok: false, message: "カテゴリ名を入力してください" };
+  }
+  if (typeof description !== "string") {
+    return { ok: false, message: "説明の形式が不正です" };
+  }
 
-  const { supabase, userId } = await requireAuth();
+  const { supabase, user } = await getAuth();
+  if (!user) return { ok: false, message: SESSION_EXPIRED_MESSAGE };
 
   const { data: category, error } = await supabase
     .from("categories")
     .update({
       name: name.trim(),
       description,
-      updated_by: userId,
+      updated_by: user.id,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("is_deleted", false)
     .select()
     .single();
 
-  if (error || !category)
-    throw new Error(error?.message ?? "カテゴリの更新に失敗しました");
+  if (error || !category) {
+    return { ok: false, message: "カテゴリの更新に失敗しました" };
+  }
 
   await supabase.from("category_histories").insert({
     category_id: category.id,
     name: category.name,
     description: category.description,
-    changed_by: userId,
+    changed_by: user.id,
     action: "updated",
   });
 
   revalidatePath("/categories");
+  return { ok: true };
 }
 
-export async function deleteCategory(formData: FormData) {
+export async function deleteCategory(
+  formData: FormData,
+): Promise<ActionResult> {
   const id = formData.get("id");
-  if (typeof id !== "string") return;
+  if (typeof id !== "string") {
+    return { ok: false, message: "不正なリクエストです" };
+  }
 
-  const { supabase, userId } = await requireAuth();
+  const { supabase, user } = await getAuth();
+  if (!user) return { ok: false, message: SESSION_EXPIRED_MESSAGE };
 
   // 使用中カテゴリを削除すると手順書の category_id が宙に浮くため、UI のボタン無効化とは別にここでも防ぐ
   const { count, error: usageError } = await supabase
@@ -97,32 +126,40 @@ export async function deleteCategory(formData: FormData) {
     .eq("category_id", id)
     .eq("is_deleted", false);
 
-  if (usageError) throw new Error("カテゴリの使用状況を確認できませんでした");
+  if (usageError) {
+    return { ok: false, message: "カテゴリの使用状況を確認できませんでした" };
+  }
   if ((count ?? 0) > 0) {
-    throw new Error("このカテゴリを使用している手順書があるため削除できません");
+    return {
+      ok: false,
+      message: `このカテゴリは${count}件の手順書で使用中のため削除できません`,
+    };
   }
 
   const { data: category, error } = await supabase
     .from("categories")
     .update({
       is_deleted: true,
-      updated_by: userId,
+      updated_by: user.id,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("is_deleted", false)
     .select()
     .single();
 
-  if (error || !category)
-    throw new Error(error?.message ?? "カテゴリの削除に失敗しました");
+  if (error || !category) {
+    return { ok: false, message: "カテゴリの削除に失敗しました" };
+  }
 
   await supabase.from("category_histories").insert({
     category_id: category.id,
     name: category.name,
     description: category.description,
-    changed_by: userId,
+    changed_by: user.id,
     action: "deleted",
   });
 
   revalidatePath("/categories");
+  return { ok: true };
 }

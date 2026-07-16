@@ -80,7 +80,7 @@ export default function ActionMenu({ procedureId, procedureTitle }: Props) {
         description={`「${procedureTitle}」のコピーを作成し、編集画面を開きます。`}
         confirmLabel="複製する"
         tone="primary"
-        formAction={duplicateProcedure}
+        action={duplicateProcedure}
         hiddenFields={{ id: procedureId }}
       />
 
@@ -90,7 +90,7 @@ export default function ActionMenu({ procedureId, procedureTitle }: Props) {
         title="手順書を削除しますか？"
         description={`「${procedureTitle}」を削除します。この操作は取り消せません。`}
         confirmLabel="削除する"
-        formAction={deleteProcedure}
+        action={deleteProcedure}
         hiddenFields={{ id: procedureId }}
       />
     </div>

@@ -105,7 +105,7 @@ export default async function CategoriesPage() {
                         title="カテゴリを削除しますか？"
                         description={`「${category.name}」を削除します。この操作は取り消せません。`}
                         confirmLabel="削除する"
-                        formAction={deleteCategory}
+                        action={deleteCategory}
                         hiddenFields={{ id: category.id }}
                       >
                         <button className="text-sm px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
