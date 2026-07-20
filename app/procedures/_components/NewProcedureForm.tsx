@@ -154,13 +154,20 @@ export default function NewProcedureForm({ categories }: Props) {
         />
       </div>
 
-      <div>
+      <div className="flex gap-3">
         <button
           type="submit"
           className="bg-[#2d6a4f] text-white rounded-md px-5 py-2 text-sm font-medium hover:bg-[#255c43] transition-colors"
         >
           作成する
         </button>
+        {/* 新規作成なので戻り先の手順書はまだ無い。一覧へ戻す */}
+        <a
+          href="/"
+          className="rounded-md border border-border px-5 py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          キャンセル
+        </a>
       </div>
     </form>
   );
