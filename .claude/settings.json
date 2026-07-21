@@ -37,7 +37,8 @@
       "PowerShell(npm uninstall shadcn tw-animate-css 2>&1)",
       "Bash(node -e ' *)",
       "Bash(rm -f app/procedures/_components/AiPanel.tsx)",
-      "Bash(rm -rf app/api/ai)"
+      "Bash(rm -rf app/api/ai)",
+      "Read(//c/sB/devlog/**)"
     ]
   }
 }

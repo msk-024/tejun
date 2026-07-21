@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createProcedure } from "@/app/procedures/actions";
 import MarkdownEditor from "./MarkdownEditor";
 import { PROCEDURE_TEMPLATES } from "./templates";
@@ -15,15 +16,35 @@ type Props = {
 };
 
 export default function NewProcedureForm({ categories }: Props) {
+  const router = useRouter();
   const [editorKey, setEditorKey] = useState(0);
   const [defaultContent, setDefaultContent] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleTemplateSelect(content: string) {
     setDefaultContent(content);
     setEditorKey((k) => k + 1);
+  }
+
+  function handleSubmit(formData: FormData) {
+    setSubmitError("");
+    startTransition(async () => {
+      try {
+        const result = await createProcedure(formData);
+        if (!result.ok) {
+          setSubmitError(result.message);
+          return;
+        }
+        // アクション側は redirect() せず遷移先を返す（他アクションと同じ方式）
+        if (result.redirectTo) router.push(result.redirectTo);
+      } catch {
+        setSubmitError("作成に失敗しました。時間をおいて再度お試しください。");
+      }
+    });
   }
 
   async function handleWordImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -66,7 +87,7 @@ export default function NewProcedureForm({ categories }: Props) {
   }
 
   return (
-    <form action={createProcedure} className="flex flex-col gap-5">
+    <form action={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-md border border-border">
         <p className="text-xs font-medium text-muted-foreground">
           テンプレートから始める（任意）
@@ -154,12 +175,19 @@ export default function NewProcedureForm({ categories }: Props) {
         />
       </div>
 
+      {submitError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {submitError}
+        </p>
+      )}
+
       <div className="flex gap-3">
         <button
           type="submit"
-          className="bg-[#2d6a4f] text-white rounded-md px-5 py-2 text-sm font-medium hover:bg-[#255c43] transition-colors"
+          disabled={isPending}
+          className="bg-[#2d6a4f] text-white rounded-md px-5 py-2 text-sm font-medium hover:bg-[#255c43] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          作成する
+          {isPending ? "作成中…" : "作成する"}
         </button>
         {/* 新規作成なので戻り先の手順書はまだ無い。一覧へ戻す */}
         <a

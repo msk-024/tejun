@@ -1,34 +1,33 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import {
   SESSION_EXPIRED_MESSAGE,
   type ActionResult,
 } from "@/lib/action-result";
 
-/** 未ログインなら /login へ飛ばす。throw 系のアクションから使う */
-async function requireAuth() {
-  const { supabase, user } = await getAuth();
-  if (!user) redirect("/login");
-  return { supabase, userId: user.id };
-}
-
-export async function createProcedure(formData: FormData) {
+export async function createProcedure(
+  formData: FormData,
+): Promise<ActionResult> {
   const title = formData.get("title");
   const content = formData.get("content") ?? "";
   const categoryIdRaw = formData.get("category_id");
 
-  if (typeof title !== "string" || title.trim() === "") return;
-  if (typeof content !== "string") return;
+  if (typeof title !== "string" || title.trim() === "") {
+    return { ok: false, message: "タイトルを入力してください" };
+  }
+  if (typeof content !== "string") {
+    return { ok: false, message: "本文の形式が不正です" };
+  }
 
   const category_id =
     typeof categoryIdRaw === "string" && categoryIdRaw !== ""
       ? categoryIdRaw
       : null;
 
-  const { supabase, userId } = await requireAuth();
+  const { supabase, user } = await getAuth();
+  if (!user) return { ok: false, message: SESSION_EXPIRED_MESSAGE };
 
   const { data: procedure, error } = await supabase
     .from("procedures")
@@ -36,19 +35,20 @@ export async function createProcedure(formData: FormData) {
       title: title.trim(),
       content,
       category_id,
-      created_by: userId,
-      updated_by: userId,
+      created_by: user.id,
+      updated_by: user.id,
     })
     .select()
     .single();
 
-  if (error || !procedure)
-    throw new Error(error?.message ?? "手順書の作成に失敗しました");
+  if (error || !procedure) {
+    return { ok: false, message: "手順書の作成に失敗しました" };
+  }
 
   // 履歴は procedures のトリガーが自動記録する（PLAN.md / migrations 参照）
 
   revalidatePath("/");
-  redirect(`/procedures/${procedure.id}`);
+  return { ok: true, redirectTo: `/procedures/${procedure.id}` };
 }
 
 export async function deleteProcedure(
@@ -85,22 +85,31 @@ export async function deleteProcedure(
   return { ok: true, redirectTo: "/" };
 }
 
-export async function updateProcedure(formData: FormData) {
+export async function updateProcedure(
+  formData: FormData,
+): Promise<ActionResult> {
   const id = formData.get("id");
   const title = formData.get("title");
   const content = formData.get("content") ?? "";
   const categoryIdRaw = formData.get("category_id");
 
-  if (typeof id !== "string") return;
-  if (typeof title !== "string" || title.trim() === "") return;
-  if (typeof content !== "string") return;
+  if (typeof id !== "string") {
+    return { ok: false, message: "不正なリクエストです" };
+  }
+  if (typeof title !== "string" || title.trim() === "") {
+    return { ok: false, message: "タイトルを入力してください" };
+  }
+  if (typeof content !== "string") {
+    return { ok: false, message: "本文の形式が不正です" };
+  }
 
   const category_id =
     typeof categoryIdRaw === "string" && categoryIdRaw !== ""
       ? categoryIdRaw
       : null;
 
-  const { supabase, userId } = await requireAuth();
+  const { supabase, user } = await getAuth();
+  if (!user) return { ok: false, message: SESSION_EXPIRED_MESSAGE };
 
   const { data: procedure, error } = await supabase
     .from("procedures")
@@ -108,15 +117,17 @@ export async function updateProcedure(formData: FormData) {
       title: title.trim(),
       content,
       category_id,
-      updated_by: userId,
+      updated_by: user.id,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("is_deleted", false)
     .select()
     .single();
 
-  if (error || !procedure)
-    throw new Error(error?.message ?? "手順書の更新に失敗しました");
+  if (error || !procedure) {
+    return { ok: false, message: "手順書の更新に失敗しました" };
+  }
 
   // 履歴は procedures のトリガーが自動記録する
 
@@ -124,7 +135,7 @@ export async function updateProcedure(formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/procedures/${id}`);
   revalidatePath(`/procedures/${id}/history`);
-  redirect(`/procedures/${id}`);
+  return { ok: true, redirectTo: `/procedures/${id}` };
 }
 
 export async function duplicateProcedure(
