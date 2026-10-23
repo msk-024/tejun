@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/actions/auth";
 
 export default async function Header() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -10,9 +11,9 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-border">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <a href="/" className="text-base font-bold text-[#2d6a4f]">
+        <Link href="/" className="text-base font-bold text-[#2d6a4f]">
           TEJUN
-        </a>
+        </Link>
 
         <div className="flex items-center gap-3">
           {user ? (

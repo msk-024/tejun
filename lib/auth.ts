@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
  * 未ログインは各アクションが ActionResult で返す。
  */
 export async function getAuth() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

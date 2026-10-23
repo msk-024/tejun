@@ -3,11 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import EditProcedureForm from "@/app/procedures/_components/EditProcedureForm";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function EditProcedurePage({ params }: Props) {
-  const supabase = createClient();
+  const supabase = await createClient();
+  const { id } = await params;
 
   const [
     {
@@ -19,7 +20,7 @@ export default async function EditProcedurePage({ params }: Props) {
     supabase
       .from("procedures")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("is_deleted", false)
       .single(),
   ]);

@@ -67,7 +67,7 @@ function excelToHtml(buffer: Buffer): string {
 
 export async function POST(request: Request) {
   // 1. 認証。パースは CPU とメモリを食うので、未ログインは何も読まずに弾く
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

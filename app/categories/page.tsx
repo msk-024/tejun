@@ -5,7 +5,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { deleteCategory } from "./actions";
 
 export default async function CategoriesPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const [
     { data: categories },

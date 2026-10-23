@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createProcedure } from "@/app/procedures/actions";
 import MarkdownEditor from "./MarkdownEditor";
 import { PROCEDURE_TEMPLATES } from "./templates";
@@ -190,12 +191,12 @@ export default function NewProcedureForm({ categories }: Props) {
           {isPending ? "作成中…" : "作成する"}
         </button>
         {/* 新規作成なので戻り先の手順書はまだ無い。一覧へ戻す */}
-        <a
+        <Link
           href="/"
           className="rounded-md border border-border px-5 py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
         >
           キャンセル
-        </a>
+        </Link>
       </div>
     </form>
   );

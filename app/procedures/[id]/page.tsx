@@ -6,11 +6,12 @@ import PrintButton from "@/app/procedures/_components/PrintButton";
 import ActionMenu from "@/app/procedures/_components/ActionMenu";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function ProcedureDetailPage({ params }: Props) {
-  const supabase = createClient();
+  const supabase = await createClient();
+  const { id } = await params;
 
   const [
     { data: procedure },
@@ -21,7 +22,7 @@ export default async function ProcedureDetailPage({ params }: Props) {
     supabase
       .from("procedures")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("is_deleted", false)
       .single(),
     supabase.auth.getUser(),

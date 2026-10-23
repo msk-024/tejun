@@ -1,16 +1,17 @@
-import { login } from '@/app/actions/auth'
+import { login } from "@/app/actions/auth";
 
 type Props = {
-  searchParams: { error?: string }
-}
+  searchParams: Promise<{ error?: string }>;
+};
 
-export default function LoginPage({ searchParams }: Props) {
+export default async function LoginPage({ searchParams }: Props) {
+  const resolvedSearchParams = await searchParams;
   const errorMessage =
-    searchParams.error === 'invalid_credentials'
-      ? 'メールアドレスまたはパスワードが正しくありません'
-      : searchParams.error === 'invalid_input'
-        ? '入力値が不正です'
-        : null
+    resolvedSearchParams.error === "invalid_credentials"
+      ? "メールアドレスまたはパスワードが正しくありません"
+      : resolvedSearchParams.error === "invalid_input"
+        ? "入力値が不正です"
+        : null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -61,5 +62,5 @@ export default function LoginPage({ searchParams }: Props) {
         </form>
       </div>
     </div>
-  )
+  );
 }

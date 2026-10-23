@@ -4,7 +4,7 @@ import ProcedureCard from "@/app/procedures/_components/ProcedureCard";
 import type { Category } from "@/lib/types";
 
 type Props = {
-  searchParams: { category?: string; q?: string };
+  searchParams: Promise<{ category?: string; q?: string }>;
 };
 
 /**
@@ -35,9 +35,10 @@ function toSearchPattern(keyword: string): string {
 }
 
 export default async function Home({ searchParams }: Props) {
-  const supabase = createClient();
-  const categoryId = searchParams.category ?? "";
-  const keyword = searchParams.q?.trim() ?? "";
+  const supabase = await createClient();
+  const resolvedSearchParams = await searchParams;
+  const categoryId = resolvedSearchParams.category ?? "";
+  const keyword = resolvedSearchParams.q?.trim() ?? "";
 
   const { data: categories } = await supabase
     .from("categories")
